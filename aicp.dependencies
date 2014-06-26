@@ -1,0 +1,24 @@
+[
+    {
+        "repository": "AICP/device_samsung_smdk4412-common",
+        "target_path": "device/samsung/smdk4412-common",
+        "branch":      "kitkat"
+    },
+    {
+        "repository": "CyanogenMod/android_kernel_samsung_smdk4412",
+        "target_path": "kernel/samsung/smdk4412",
+        "branch":      "cm-11.0"
+    },
+    {
+        "repository": "CyanogenMod/android_packages_apps_SamsungServiceMode",
+        "target_path": "packages/apps/SamsungServiceMode",
+        "branch":      "cm-11.0"
+    },
+    {
+        "repository": "AICP/proprietary_vendor_samsung_n7100",
+        "target_path": "vendor/samsung/n7100",
+        "branch":      "kitkat"
+    }
+]
+
+
