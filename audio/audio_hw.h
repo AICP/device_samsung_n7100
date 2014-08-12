@@ -162,8 +162,7 @@ struct route_setting noise_suppression_disable[] = {
     { .ctl_name = "Sub Mic Switch", .intval = 0, },
     { .ctl_name = "SubMicBias Mode", .intval = 0, },
     { .ctl_name = "MIXINR IN1R Switch", .intval = 0, },
-    { .ctl_name = "AIF2DACL Source", .intval = 0, },
-    { .ctl_name = "AIF2DACR Source", .intval = 1, },
+    { .ctl_name = "MIXINR IN1R Volume", .intval = 0, },
     { .ctl_name = NULL, },
 };
 
