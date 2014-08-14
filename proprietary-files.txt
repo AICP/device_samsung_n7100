@@ -4,6 +4,7 @@ system/bin/sensorhubservice
 system/lib/hw/gps.exynos4.so
 system/lib/hw/sensors.smdk4x12.so
 system/lib/hw/sensorhubs.smdk4x12.so
+system/lib/hw/vendor-camera.smdk4x12.so
 system/lib/libakm.so
 system/lib/libsec-ril.so
 system/lib/libsensorservice.so
