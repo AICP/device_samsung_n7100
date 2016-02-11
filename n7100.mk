@@ -45,6 +45,10 @@ PRODUCT_PACKAGES += \
     fsck.f2fs \
     mkfs.f2fs
 
+# Power
+PRODUCT_PACKAGES += \
+    power.smdk4x12
+
 # Gps
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml \
