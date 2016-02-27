@@ -4,7 +4,11 @@ on init
     export VIBE_PIPE_PATH /dev/pipes
     mkdir /dev/pipes 0771 shell shell
 
+# Pegasusq
     chown system system /sys/devices/system/cpu/cpufreq/pegasusq
+    chown system system /sys/devices/system/cpu/cpufreq/pegasusq/boost_freq
+    chown system system /sys/devices/system/cpu/cpufreq/pegasusq/boost_lock_time
+    chown system system /sys/devices/system/cpu/cpufreq/pegasusq/boost_mincpus
     chown system system /sys/devices/system/cpu/cpufreq/pegasusq/cpu_down_freq
     chown system system /sys/devices/system/cpu/cpufreq/pegasusq/cpu_down_rate
     chown system system /sys/devices/system/cpu/cpufreq/pegasusq/cpu_up_freq
