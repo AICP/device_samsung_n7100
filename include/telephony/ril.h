@@ -66,6 +66,11 @@ extern "C" {
  *
  * RIL_VERSION = 13 : This version includes new wakelock semantics and as the first
  *                    strongly versioned version it enforces structure use.
+ * RIL_VERSION = 14 : New data structures are added, namely RIL_CarrierMatchType,
+ *                    RIL_Carrier, RIL_CarrierRestrictions and RIL_PCO_Data.
+ *                    New commands added: RIL_REQUEST_SET_CARRIER_RESTRICTIONS,
+ *                    RIL_REQUEST_SET_CARRIER_RESTRICTIONS and
+ *                    RIL_UNSOL_PCO_DATA
  */
 #define RIL_VERSION 12
 #define LAST_IMPRECISE_RIL_VERSION 12 // Better self-documented name
@@ -123,7 +128,7 @@ typedef enum {
     RIL_E_ILLEGAL_SIM_OR_ME = 15,               /* network selection failed due to
                                                    illegal SIM or ME */
     RIL_E_MISSING_RESOURCE = 16,                /* no logical channel available */
-    RIL_E_NO_SUCH_ELEMENT = 17,                 /* application not found on SIM */
+    RIL_E_NO_SUCH_ELEMENT = 17,                  /* application not found on SIM */
     RIL_E_DIAL_MODIFIED_TO_USSD = 18,           /* DIAL request modified to USSD */
     RIL_E_DIAL_MODIFIED_TO_SS = 19,             /* DIAL request modified to SS */
     RIL_E_DIAL_MODIFIED_TO_DIAL = 20,           /* DIAL request modified to DIAL with different
@@ -241,7 +246,8 @@ typedef enum {
     RADIO_TECH_HSPAP = 15, // HSPA+
     RADIO_TECH_GSM = 16, // Only supports voice
     RADIO_TECH_TD_SCDMA = 17,
-    RADIO_TECH_IWLAN = 18
+    RADIO_TECH_IWLAN = 18,
+    RADIO_TECH_LTE_CA = 19
 } RIL_RadioTechnology;
 
 typedef enum {
@@ -263,6 +269,7 @@ typedef enum {
     RAF_HSPAP = (1 << RADIO_TECH_HSPAP),
     RAF_GSM = (1 << RADIO_TECH_GSM),
     RAF_TD_SCDMA = (1 << RADIO_TECH_TD_SCDMA),
+    RAF_LTE_CA = (1 << RADIO_TECH_LTE_CA)
 } RIL_RadioAccessFamily;
 
 typedef enum {
@@ -536,7 +543,10 @@ typedef struct {
         RIL_CDMA_SMS_Message* cdmaMessage;
 
         /* Valid field if tech is RADIO_TECH_3GPP. See RIL_REQUEST_SEND_SMS */
-        char**                gsmMessage;
+        char**                gsmMessage;   /* This is an array of pointers where pointers
+                                               are contiguous but elements pointed by those pointers
+                                               are not contiguous
+                                            */
     } message;
 } RIL_IMS_SMS_Message;
 
@@ -687,15 +697,45 @@ typedef struct {
                                         */
 } RIL_LceDataInfo;
 
+typedef enum {
+    RIL_MATCH_ALL = 0,          /* Apply to all carriers with the same mcc/mnc */
+    RIL_MATCH_SPN = 1,          /* Use SPN and mcc/mnc to identify the carrier */
+    RIL_MATCH_IMSI_PREFIX = 2,  /* Use IMSI prefix and mcc/mnc to identify the carrier */
+    RIL_MATCH_GID1 = 3,         /* Use GID1 and mcc/mnc to identify the carrier */
+    RIL_MATCH_GID2 = 4,         /* Use GID2 and mcc/mnc to identify the carrier */
+} RIL_CarrierMatchType;
+
+typedef struct {
+    const char * mcc;
+    const char * mnc;
+    RIL_CarrierMatchType match_type;   /* Specify match type for the carrier.
+                                        * If it’s RIL_MATCH_ALL, match_data is null;
+                                        * otherwise, match_data is the value for the match type.
+                                        */
+    const char * match_data;
+} RIL_Carrier;
+
+typedef struct {
+  int32_t len_allowed_carriers;         /* length of array allowed_carriers */
+  int32_t len_excluded_carriers;        /* length of array excluded_carriers */
+  RIL_Carrier * allowed_carriers;       /* whitelist for allowed carriers */
+  RIL_Carrier * excluded_carriers;      /* blacklist for explicitly excluded carriers
+                                         * which match allowed_carriers. Eg. allowed_carriers match
+                                         * mcc/mnc, excluded_carriers has same mcc/mnc and gid1
+                                         * is ABCD. It means except the carrier whose gid1 is ABCD,
+                                         * all carriers with the same mcc/mnc are allowed.
+                                         */
+} RIL_CarrierRestrictions;
+
 /* See RIL_REQUEST_LAST_CALL_FAIL_CAUSE */
 typedef enum {
     CALL_FAIL_UNOBTAINABLE_NUMBER = 1,
-    CALL_FAIL_NO_ROUTE_TO_DESTINATION = 3,
+	CALL_FAIL_NO_ROUTE_TO_DESTINATION = 3,
     CALL_FAIL_CHANNEL_UNACCEPTABLE = 6,
     CALL_FAIL_OPERATOR_DETERMINED_BARRING = 8,
     CALL_FAIL_NORMAL = 16,
     CALL_FAIL_BUSY = 17,
-    CALL_FAIL_NO_USER_RESPONDING = 18,
+	CALL_FAIL_NO_USER_RESPONDING = 18,
     CALL_FAIL_NO_ANSWER_FROM_USER = 19,
     CALL_FAIL_CALL_REJECTED = 21,
     CALL_FAIL_NUMBER_CHANGED = 22,
@@ -706,7 +746,7 @@ typedef enum {
     CALL_FAIL_RESP_TO_STATUS_ENQUIRY = 30,
     CALL_FAIL_NORMAL_UNSPECIFIED = 31,
     CALL_FAIL_CONGESTION = 34,
-    CALL_FAIL_NETWORK_OUT_OF_ORDER = 38,
+	CALL_FAIL_NETWORK_OUT_OF_ORDER = 38,
     CALL_FAIL_TEMPORARY_FAILURE = 41,
     CALL_FAIL_SWITCHING_EQUIPMENT_CONGESTION = 42,
     CALL_FAIL_ACCESS_INFORMATION_DISCARDED = 43,
@@ -720,7 +760,7 @@ typedef enum {
     CALL_FAIL_SERVICE_OPTION_NOT_AVAILABLE = 63,
     CALL_FAIL_BEARER_SERVICE_NOT_IMPLEMENTED = 65,
     CALL_FAIL_ACM_LIMIT_EXCEEDED = 68,
-    CALL_FAIL_REQUESTED_FACILITY_NOT_IMPLEMENTED = 69,
+	CALL_FAIL_REQUESTED_FACILITY_NOT_IMPLEMENTED = 69,
     CALL_FAIL_ONLY_DIGITAL_INFORMATION_BEARER_AVAILABLE = 70,
     CALL_FAIL_SERVICE_OR_OPTION_NOT_IMPLEMENTED = 79,
     CALL_FAIL_INVALID_TRANSACTION_IDENTIFIER = 81,
@@ -776,7 +816,7 @@ typedef enum {
        as the UI layer needs to distinguish these
        cases for error notification and potential retries. */
     PDP_FAIL_OPERATOR_BARRED = 0x08,               /* no retry */
-    PDP_FAIL_NAS_SIGNALLING = 0x0E,
+	PDP_FAIL_NAS_SIGNALLING = 0x0E,
     PDP_FAIL_LLC_SNDCP = 0x19,
     PDP_FAIL_INSUFFICIENT_RESOURCES = 0x1A,
     PDP_FAIL_MISSING_UKNOWN_APN = 0x1B,            /* no retry */
@@ -790,7 +830,7 @@ typedef enum {
     PDP_FAIL_NSAPI_IN_USE = 0x23,                  /* no retry */
     PDP_FAIL_REGULAR_DEACTIVATION = 0x24,          /* possibly restart radio,
                                                       based on framework config */
-    PDP_FAIL_QOS_NOT_ACCEPTED = 0x25,
+	PDP_FAIL_QOS_NOT_ACCEPTED = 0x25,
     PDP_FAIL_NETWORK_FAILURE = 0x26,
     PDP_FAIL_UMTS_REACTIVATION_REQ = 0x27,
     PDP_FAIL_FEATURE_NOT_SUPP = 0x28,
@@ -803,7 +843,7 @@ typedef enum {
     PDP_FAIL_ONLY_IPV4_ALLOWED = 0x32,             /* no retry */
     PDP_FAIL_ONLY_IPV6_ALLOWED = 0x33,             /* no retry */
     PDP_FAIL_ONLY_SINGLE_BEARER_ALLOWED = 0x34,
-    PDP_FAIL_ESM_INFO_NOT_RECEIVED = 0x35,
+	PDP_FAIL_ESM_INFO_NOT_RECEIVED = 0x35,
     PDP_FAIL_PDN_CONN_DOES_NOT_EXIST = 0x36,
     PDP_FAIL_MULTI_CONN_TO_SAME_PDN_NOT_ALLOWED = 0x37,
     PDP_FAIL_MAX_ACTIVE_PDP_CONTEXT_REACHED = 0x41,
@@ -816,8 +856,8 @@ typedef enum {
     PDP_FAIL_UNKNOWN_INFO_ELEMENT = 0x63,
     PDP_FAIL_CONDITIONAL_IE_ERROR = 0x64,
     PDP_FAIL_MSG_AND_PROTOCOL_STATE_UNCOMPATIBLE = 0x65,
-    PDP_FAIL_PROTOCOL_ERRORS = 0x6F,             /* no retry */
-    PDP_FAIL_APN_TYPE_CONFLICT = 0x70,
+    PDP_FAIL_PROTOCOL_ERRORS   = 0x6F,             /* no retry */
+	PDP_FAIL_APN_TYPE_CONFLICT = 0x70,
     PDP_FAIL_INVALID_PCSCF_ADDR = 0x71,
     PDP_FAIL_INTERNAL_CALL_PREEMPT_BY_HIGH_PRIO_APN = 0x72,
     PDP_FAIL_EMM_ACCESS_BARRED = 0x73,
@@ -894,9 +934,10 @@ typedef struct {
 #define RIL_CARD_MAX_APPS     8
 
 typedef enum {
-    RIL_CARDSTATE_ABSENT   = 0,
-    RIL_CARDSTATE_PRESENT  = 1,
-    RIL_CARDSTATE_ERROR    = 2
+    RIL_CARDSTATE_ABSENT     = 0,
+    RIL_CARDSTATE_PRESENT    = 1,
+    RIL_CARDSTATE_ERROR      = 2,
+    RIL_CARDSTATE_RESTRICTED = 3  /* card is present but not usable due to carrier restrictions.*/
 } RIL_CardState;
 
 typedef enum {
@@ -5015,58 +5056,6 @@ typedef struct {
  */
 #define RIL_REQUEST_SET_RADIO_CAPABILITY 131
 
-/* SAMSUNG REQUESTS */
-#undef RIL_REQUEST_SIM_OPEN_CHANNEL
-#undef RIL_REQUEST_SIM_CLOSE_CHANNEL
-#define RIL_REQUEST_GET_CELL_BROADCAST_CONFIG 10002
-#define RIL_REQUEST_SEND_ENCODED_USSD 10005
-#define RIL_REQUEST_SET_PDA_MEMORY_STATUS 10006
-#define RIL_REQUEST_GET_PHONEBOOK_STORAGE_INFO 10007
-#define RIL_REQUEST_GET_PHONEBOOK_ENTRY 10008
-#define RIL_REQUEST_ACCESS_PHONEBOOK_ENTRY 10009
-#define RIL_REQUEST_DIAL_VIDEO_CALL 10010
-#define RIL_REQUEST_CALL_DEFLECTION 10011
-#define RIL_REQUEST_READ_SMS_FROM_SIM 10012
-#define RIL_REQUEST_USIM_PB_CAPA 10013
-#define RIL_REQUEST_LOCK_INFO 10014
-#define RIL_REQUEST_DIAL_EMERGENCY 10016
-#define RIL_REQUEST_GET_STOREAD_MSG_COUNT 10017
-#define RIL_REQUEST_STK_SIM_INIT_EVENT 10018
-#define RIL_REQUEST_GET_LINE_ID 10019
-#define RIL_REQUEST_SET_LINE_ID 10020
-#define RIL_REQUEST_GET_SERIAL_NUMBER 10021
-#define RIL_REQUEST_GET_MANUFACTURE_DATE_NUMBER 10022
-#define RIL_REQUEST_GET_BARCODE_NUMBER 10023
-#define RIL_REQUEST_UICC_GBA_AUTHENTICATE_BOOTSTRAP 10024
-#define RIL_REQUEST_UICC_GBA_AUTHENTICATE_NAF 10025
-#define RIL_REQUEST_SIM_TRANSMIT_BASIC 10026
-#define RIL_REQUEST_SIM_OPEN_CHANNEL 10027
-#define RIL_REQUEST_SIM_CLOSE_CHANNEL 10028
-#define RIL_REQUEST_SIM_TRANSMIT_CHANNEL 10029
-#define RIL_REQUEST_SIM_AUTH 10030
-#define RIL_REQUEST_PS_ATTACH 10031
-#define RIL_REQUEST_PS_DETACH 10032
-#define RIL_REQUEST_ACTIVATE_DATA_CALL 10033
-#define RIL_REQUEST_CHANGE_SIM_PERSO 10034
-#define RIL_REQUEST_ENTER_SIM_PERSO 10035
-#define RIL_REQUEST_GET_TIME_INFO 10036
-#define RIL_REQUEST_OMADM_SETUP_SESSION 10037
-#define RIL_REQUEST_OMADM_SERVER_START_SESSION 10038
-#define RIL_REQUEST_OMADM_CLIENT_START_SESSION 10039
-#define RIL_REQUEST_OMADM_SEND_DATA 10040
-#define RIL_REQUEST_CDMA_GET_DATAPROFILE 10041
-#define RIL_REQUEST_CDMA_SET_DATAPROFILE 10042
-#define RIL_REQUEST_CDMA_GET_SYSTEMPROPERTIES 10043
-#define RIL_REQUEST_CDMA_SET_SYSTEMPROPERTIES 10044
-#define RIL_REQUEST_SEND_SMS_COUNT 10045
-#define RIL_REQUEST_SEND_SMS_MSG 10046
-#define RIL_REQUEST_SEND_SMS_MSG_READ_STATUS 10047
-#define RIL_REQUEST_MODEM_HANGUP 10048
-#define RIL_REQUEST_SET_SIM_POWER 10049
-#define RIL_REQUEST_SET_PREFERRED_NETWORK_LIST 10050
-#define RIL_REQUEST_GET_PREFERRED_NETWORK_LIST 10051
-#define RIL_REQUEST_HANGUP_VT 10052
-
 /**
  * RIL_REQUEST_START_LCE
  *
@@ -5134,6 +5123,112 @@ typedef struct {
  */
 #define RIL_REQUEST_GET_ACTIVITY_INFO 135
 
+/**
+ * RIL_REQUEST_SET_CARRIER_RESTRICTIONS
+ *
+ * Set carrier restrictions for this sim slot. Expected modem behavior:
+ *  If never receives this command
+ *  - Must allow all carriers
+ *  Receives this command with data being NULL
+ *  - Must allow all carriers. If a previously allowed SIM is present, modem must not reload
+ *    the SIM. If a previously disallowed SIM is present, reload the SIM and notify Android.
+ *  Receives this command with a list of carriers
+ *  - Only allow specified carriers, persist across power cycles and FDR. If a present SIM
+ *    is in the allowed list, modem must not reload the SIM. If a present SIM is *not* in
+ *    the allowed list, modem must detach from the registered network and only keep emergency
+ *    service, and notify Android SIM refresh reset with new SIM state being
+ *    RIL_CARDSTATE_RESTRICTED. Emergency service must be enabled.
+ *
+ * "data" is const RIL_CarrierRestrictions *
+ * A list of allowed carriers and possibly a list of excluded carriers.
+ * If data is NULL, means to clear previous carrier restrictions and allow all carriers
+ *
+ * "response" is int *
+ * ((int *)data)[0] contains the number of allowed carriers which have been set correctly.
+ * On success, it should match the length of list data->allowed_carriers.
+ * If data is NULL, the value must be 0.
+ *
+ * Valid errors:
+ *  RIL_E_SUCCESS
+ *  RIL_E_INVALID_ARGUMENTS
+ *  RIL_E_RADIO_NOT_AVAILABLE
+ *  RIL_E_REQUEST_NOT_SUPPORTED
+ */
+#define RIL_REQUEST_SET_CARRIER_RESTRICTIONS 136
+
+/**
+ * RIL_REQUEST_GET_CARRIER_RESTRICTIONS
+ *
+ * Get carrier restrictions for this sim slot. Expected modem behavior:
+ *  Return list of allowed carriers, or null if all carriers are allowed.
+ *
+ * "data" is NULL
+ *
+ * "response" is const RIL_CarrierRestrictions *.
+ * If response is NULL, it means all carriers are allowed.
+ *
+ * Valid errors:
+ *  RIL_E_SUCCESS
+ *  RIL_E_RADIO_NOT_AVAILABLE
+ *  RIL_E_REQUEST_NOT_SUPPORTED
+ */
+#define RIL_REQUEST_GET_CARRIER_RESTRICTIONS 137
+
+/* SAMSUNG REQUESTS */
+#undef RIL_REQUEST_SIM_OPEN_CHANNEL
+#undef RIL_REQUEST_SIM_CLOSE_CHANNEL
+
+#define RIL_REQUEST_GET_CELL_BROADCAST_CONFIG 10002
+
+#define RIL_REQUEST_SEND_ENCODED_USSD 10005
+#define RIL_REQUEST_SET_PDA_MEMORY_STATUS 10006
+#define RIL_REQUEST_GET_PHONEBOOK_STORAGE_INFO 10007
+#define RIL_REQUEST_GET_PHONEBOOK_ENTRY 10008
+#define RIL_REQUEST_ACCESS_PHONEBOOK_ENTRY 10009
+#define RIL_REQUEST_DIAL_VIDEO_CALL 10010
+#define RIL_REQUEST_CALL_DEFLECTION 10011
+#define RIL_REQUEST_READ_SMS_FROM_SIM 10012
+#define RIL_REQUEST_USIM_PB_CAPA 10013
+#define RIL_REQUEST_LOCK_INFO 10014
+
+#define RIL_REQUEST_DIAL_EMERGENCY 10016
+#define RIL_REQUEST_GET_STOREAD_MSG_COUNT 10017
+#define RIL_REQUEST_STK_SIM_INIT_EVENT 10018
+#define RIL_REQUEST_GET_LINE_ID 10019
+#define RIL_REQUEST_SET_LINE_ID 10020
+#define RIL_REQUEST_GET_SERIAL_NUMBER 10021
+#define RIL_REQUEST_GET_MANUFACTURE_DATE_NUMBER 10022
+#define RIL_REQUEST_GET_BARCODE_NUMBER 10023
+#define RIL_REQUEST_UICC_GBA_AUTHENTICATE_BOOTSTRAP 10024
+#define RIL_REQUEST_UICC_GBA_AUTHENTICATE_NAF 10025
+#define RIL_REQUEST_SIM_TRANSMIT_BASIC 10026
+#define RIL_REQUEST_SIM_OPEN_CHANNEL 10027
+#define RIL_REQUEST_SIM_CLOSE_CHANNEL 10028
+#define RIL_REQUEST_SIM_TRANSMIT_CHANNEL 10029
+#define RIL_REQUEST_SIM_AUTH 10030
+#define RIL_REQUEST_PS_ATTACH 10031
+#define RIL_REQUEST_PS_DETACH 10032
+#define RIL_REQUEST_ACTIVATE_DATA_CALL 10033
+#define RIL_REQUEST_CHANGE_SIM_PERSO 10034
+#define RIL_REQUEST_ENTER_SIM_PERSO 10035
+#define RIL_REQUEST_GET_TIME_INFO 10036
+#define RIL_REQUEST_OMADM_SETUP_SESSION 10037
+#define RIL_REQUEST_OMADM_SERVER_START_SESSION 10038
+#define RIL_REQUEST_OMADM_CLIENT_START_SESSION 10039
+#define RIL_REQUEST_OMADM_SEND_DATA 10040
+#define RIL_REQUEST_CDMA_GET_DATAPROFILE 10041
+#define RIL_REQUEST_CDMA_SET_DATAPROFILE 10042
+#define RIL_REQUEST_CDMA_GET_SYSTEMPROPERTIES 10043
+#define RIL_REQUEST_CDMA_SET_SYSTEMPROPERTIES 10044
+#define RIL_REQUEST_SEND_SMS_COUNT 10045
+#define RIL_REQUEST_SEND_SMS_MSG 10046
+#define RIL_REQUEST_SEND_SMS_MSG_READ_STATUS 10047
+#define RIL_REQUEST_MODEM_HANGUP 10048
+#define RIL_REQUEST_SET_SIM_POWER 10049
+#define RIL_REQUEST_SET_PREFERRED_NETWORK_LIST 10050
+#define RIL_REQUEST_GET_PREFERRED_NETWORK_LIST 10051
+#define RIL_REQUEST_HANGUP_VT 10052
+
 /***********************************************************************/
 
 /**
@@ -5147,11 +5242,9 @@ typedef struct {
  * SUCCESS
  * RADIO_NOT_AVAILABLE
  */
-
 #define RIL_RESPONSE_ACKNOWLEDGEMENT 800
 
 /***********************************************************************/
-
 
 #define RIL_UNSOL_RESPONSE_BASE 1000
 
@@ -5739,12 +5832,37 @@ typedef struct {
  */
 #define RIL_UNSOL_STK_CC_ALPHA_NOTIFY 1044
 
+/**
+ * RIL_UNSOL_LCEDATA_RECV
+ *
+ * Called when there is an incoming Link Capacity Estimate (LCE) info report.
+ *
+ * "data" is the RIL_LceDataInfo structure.
+ *
+ */
+#define RIL_UNSOL_LCEDATA_RECV 1045
+
+/**
+ * RIL_UNSOL_PCO_DATA
+ *
+ * Called when there is new Carrier PCO data received for a data call.  Ideally
+ * only new data will be forwarded, though this is not required.  Multiple
+ * boxes of carrier PCO data for a given call should result in a series of
+ * RIL_UNSOL_PCO_DATA calls.
+ *
+ * "data" is the RIL_PCO_Data structure.
+ *
+ */
+#define RIL_UNSOL_PCO_DATA 1046
+
 /* SAMSUNG RESPONSE */
 #define SAMSUNG_UNSOL_RESPONSE_BASE 11000
+
 #define RIL_UNSOL_RELEASE_COMPLETE_MESSAGE 11001
 #define RIL_UNSOL_STK_SEND_SMS_RESULT 11002
 #define RIL_UNSOL_STK_CALL_CONTROL_RESULT 11003
 #define RIL_UNSOL_DUN_CALL_STATUS 11004
+
 #define RIL_UNSOL_O2_HOME_ZONE_INFO 11007
 #define RIL_UNSOL_DEVICE_READY_NOTI 11008
 #define RIL_UNSOL_GPS_NOTI 11009
@@ -5752,6 +5870,7 @@ typedef struct {
 #define RIL_UNSOL_DUN_PIN_CONTROL_SIGNAL 11011
 #define RIL_UNSOL_DATA_SUSPEND_RESUME 11012
 #define RIL_UNSOL_SAP 11013
+
 #define RIL_UNSOL_SIM_SMS_STORAGE_AVAILALE 11015
 #define RIL_UNSOL_HSDPA_STATE_CHANGED 11016
 #define RIL_UNSOL_WB_AMR_STATE 11017
@@ -5771,18 +5890,7 @@ typedef struct {
 #define RIL_UNSOL_UTS_GET_UNREAD_SMS_STATUS 11031
 #define RIL_UNSOL_MIP_CONNECT_STATUS 11032
 
-/**
- * RIL_UNSOL_LCEDATA_RECV
- *
- * Called when there is an incoming Link Capacity Estimate (LCE) info report.
- *
- * "data" is the RIL_LceDataInfo structure.
- *
- */
-#define RIL_UNSOL_LCEDATA_RECV 1045
-
 /***********************************************************************/
-
 
 #if defined(ANDROID_MULTI_SIM)
 /**
@@ -5791,8 +5899,13 @@ typedef struct {
  * @param request is one of RIL_REQUEST_*
  * @param data is pointer to data defined for that RIL_REQUEST_*
  *        data is owned by caller, and should not be modified or freed by callee
+ *        structures passed as data may contain pointers to non-contiguous memory
  * @param t should be used in subsequent call to RIL_onResponse
- * @param datalen the length of data
+ * @param datalen is the length of "data" which is defined as other argument. It may or may
+ *        not be equal to sizeof(data). Refer to the documentation of individual structures
+ *        to find if pointers listed in the structure are contiguous and counted in the datalen
+ *        length or not.
+ *        (Eg: RIL_IMS_SMS_Message where we don't have datalen equal to sizeof(data))
  *
  */
 typedef void (*RIL_RequestFunc) (int request, void *data,
@@ -5812,8 +5925,13 @@ typedef RIL_RadioState (*RIL_RadioStateRequest)(RIL_SOCKET_ID socket_id);
  * @param request is one of RIL_REQUEST_*
  * @param data is pointer to data defined for that RIL_REQUEST_*
  *        data is owned by caller, and should not be modified or freed by callee
+ *        structures passed as data may contain pointers to non-contiguous memory
  * @param t should be used in subsequent call to RIL_onResponse
- * @param datalen the length of data
+ * @param datalen is the length of "data" which is defined as other argument. It may or may
+ *        not be equal to sizeof(data). Refer to the documentation of individual structures
+ *        to find if pointers listed in the structure are contiguous and counted in the datalen
+ *        length or not.
+ *        (Eg: RIL_IMS_SMS_Message where we don't have datalen equal to sizeof(data))
  *
  */
 typedef void (*RIL_RequestFunc) (int request, void *data,
@@ -5890,6 +6008,19 @@ typedef struct {
     char *aid;                  /* AID value, See ETSI 102.221 8.1 and 101.220 4,
                                    NULL if no value. */
 } RIL_SimAuthentication;
+
+typedef struct {
+    int cid;             /* Context ID, uniquely identifies this call */
+    char *bearer_proto;  /* One of the PDP_type values in TS 27.007 section 10.1.1.
+                            For example, "IP", "IPV6", "IPV4V6" */
+    int pco_id;          /* The protocol ID for this box.  Note that only IDs from
+                            FF00H - FFFFH are accepted.  If more than one is included
+                            from the network, multiple calls should be made to send all
+                            of them. */
+    int contents_length; /* The number of octets in the contents. */
+    char *contents;      /* Carrier-defined content.  It is binary, opaque and
+                            loosely defined in LTE Layer 3 spec 24.008 */
+} RIL_PCO_Data;
 
 #ifdef RIL_SHLIB
 struct RIL_Env {
@@ -6045,7 +6176,6 @@ void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
 
 void RIL_requestTimedCallback (RIL_TimedCallback callback,
                                void *param, const struct timeval *relativeTime);
-
 
 #endif /* RIL_SHLIB */
 
