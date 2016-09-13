@@ -101,9 +101,9 @@ PRODUCT_PACKAGES += \
 
 $(call inherit-product, vendor/cm/config/nfc_enhanced.mk)
 
-# Samsung symbols
+# RIL
 PRODUCT_PACKAGES += \
-    libsamsung_symbols
+    libshim_ril
 
 # RIL
 PRODUCT_PROPERTY_OVERRIDES += \
