@@ -1,6 +1,6 @@
 [
     {
-        "repository": "ivanmeler/android_device_samsung_smdk4412-common",
+        "repository": "Note-2/android_device_samsung_smdk4412-common",
         "target_path": "device/samsung/smdk4412-common",
 	"branch":      "cm-13.0"
     },
