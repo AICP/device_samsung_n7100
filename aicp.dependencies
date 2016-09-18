@@ -5,7 +5,7 @@
 	"branch":      "cm-13.0"
     },
     {
-        "repository": "Haxynox/android_kernel_samsung_smdk4412",
+        "repository": "Note-2/android_kernel_samsung_smdk4412",
         "target_path": "kernel/samsung/smdk4412",
 	"branch":      "Mmm"
     },
