@@ -61,7 +61,7 @@ PRODUCT_PACKAGES += \
 
 # RIL & GPS fix
 PRODUCT_PACKAGES += \
-    ril-wrapper \
+    libsecril-shim \
     libdmitry
 
 # Additional apps
