@@ -54,6 +54,9 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml \
     $(LOCAL_PATH)/gps_daemon.sh:system/bin/gps_daemon.sh
 
+PRODUCT_PACKAGES += \
+    gps.smdk4x12
+
 # Product specific Packages
 PRODUCT_PACKAGES += \
     DeviceSettings \
