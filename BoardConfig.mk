@@ -67,3 +67,6 @@ SENSORS_NEED_SETRATE_ON_ENABLE := true
 # Selinux
 #BOARD_SEPOLICY_DIRS += \
 #    device/samsung/n7100/selinux
+
+# Clang
+USE_CLANG_PLATFORM_BUILD := false
