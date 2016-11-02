@@ -63,7 +63,6 @@ RECOVERY_FSTAB_VERSION := 2
 
 # Compatibility with pre-kitkat Sensor HALs
 SENSORS_NEED_SETRATE_ON_ENABLE := true
-BOARD_GLOBAL_CFLAGS += -DCOMPAT_SENSORS_M
 
 # Selinux
 #BOARD_SEPOLICY_DIRS += \
