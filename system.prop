@@ -16,3 +16,7 @@ ro.device.gpu=Mali-400MP4
 ro.device.rear_cam=8 MP
 ro.device.front_cam=1.9 MP
 ro.device.screen_res=720x128
+
+# Camera
+media.stagefright.legacyencoder=true
+media.stagefright.less-secure=true
