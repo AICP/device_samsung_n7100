@@ -62,7 +62,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 RECOVERY_FSTAB_VERSION := 2
 
 # Compatibility with pre-kitkat Sensor HALs
-SENSORS_NEED_SETRATE_ON_ENABLE := true
+# SENSORS_NEED_SETRATE_ON_ENABLE := true
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
