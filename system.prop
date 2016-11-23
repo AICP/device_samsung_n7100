@@ -11,7 +11,6 @@ ro.lcd_min_brightness=20
 
 # Camera & Media hacks
 media.stagefright.legacyencoder=true
-media.stagefright.less-secure=true
 
 # Hardware Info
 ro.device.chipset=Exynos 4412 Quad
