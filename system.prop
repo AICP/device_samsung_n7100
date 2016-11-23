@@ -11,4 +11,3 @@ ro.lcd_min_brightness=20
 
 # Camera & Media hacks
 media.stagefright.legacyencoder=true
-media.stagefright.less-secure=true
