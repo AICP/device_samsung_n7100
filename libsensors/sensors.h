@@ -40,7 +40,6 @@ __BEGIN_DECLS
 #define ID_P  (4)
 #define ID_GY (5)
 #define ID_PR (6)
-#define ID_SM (7)
 
 #define SSP_ACCEL  (1)
 #define SSP_GYRO   (2)
@@ -59,6 +58,7 @@ const int ssp_sensors[] = {
   SSP_PROX,
   SSP_LIGHT
 };
+
 
 /*****************************************************************************/
 
