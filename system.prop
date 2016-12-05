@@ -1,5 +1,5 @@
 #
-# system.prop for smdk4x12
+# system.prop for n7100
 #
 
 dalvik.vm.dexopt-data-only=1
@@ -11,3 +11,6 @@ ro.lcd_min_brightness=20
 
 # Camera & Media hacks
 media.stagefright.legacyencoder=true
+
+# EGL blobs crash on screen off
+ro.egl.destroy_after_detach=true
