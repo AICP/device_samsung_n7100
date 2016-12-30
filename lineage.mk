@@ -31,7 +31,7 @@ PRODUCT_RELEASE_NAME := n7100
 TARGET_SCREEN_HEIGHT := 1280
 TARGET_SCREEN_WIDTH := 720
 
-# Inherit some common CM stuff.
+# Inherit some common stuff.
 $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 
 # Inherit device configuration
@@ -39,7 +39,7 @@ $(call inherit-product, device/samsung/n7100/full_n7100.mk)
 
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := n7100
-PRODUCT_NAME := cm_n7100
+PRODUCT_NAME := lineage_n7100
 PRODUCT_BRAND := samsung
 PRODUCT_MODEL := GT-N7100
 PRODUCT_MANUFACTURER := samsung
