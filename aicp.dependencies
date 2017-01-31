@@ -5,7 +5,7 @@
         "branch":      "cm-14.1"
     },
     {
-        "repository": "Note-2/android_kernel_samsung_smdk4412",
+        "repository": "tilaksidduram/android_kernel_samsung_smdk4412",
         "target_path": "kernel/samsung/smdk4412",
         "branch":      "cm-14.1"
     },
