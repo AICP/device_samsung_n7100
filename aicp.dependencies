@@ -20,9 +20,9 @@
         "branch":      "cm-14.1"
     },
     {
-        "repository":  "tilaksidduram/proprietary_vendor_samsung",
+        "repository":  "teamhorizon/proprietary_vendor_samsung",
         "target_path": "vendor/samsung",
-        "branch":      "cm-14.1"
+        "branch":      "n7100"
     },
 	{
         "repository" : "LineageOS/android_packages_resources_devicesettings",
