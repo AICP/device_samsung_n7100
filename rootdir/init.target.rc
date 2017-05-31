@@ -44,6 +44,9 @@ on fs
     mount_all /fstab.smdk4x12
     swapon_all /fstab.smdk4x12
 
+# Touchkeys
+    write /sys/devices/virtual/sec/sec_touchkey/touchkey_led_on_keypress 1
+
 on boot
 
 # cbd
