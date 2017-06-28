@@ -10,9 +10,6 @@ ro.sf.lcd_density=320
 ro.lcd_min_brightness=20
 ro.ril.telephony.mqanelements=5
 
-# Camera & Media hacks
-media.stagefright.legacyencoder=true
-
 # EGL blobs crash on screen off
 ro.egl.destroy_after_detach=true
 
@@ -26,3 +23,4 @@ ro.device.screen_res=720x128
 
 # Google Assistant
 ro.opa.eligible_device=true
+
