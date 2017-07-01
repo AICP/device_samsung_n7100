@@ -5,7 +5,7 @@
         "branch":      "n7.1"
     },
     {
-        "repository": "makorn645/android_kernel_samsung_n7100",
+        "repository": "makorn645/android_kernel_samsung_smdk4412",
         "target_path": "kernel/samsung/smdk4412",
         "branch":      "n7.1"
     },
