@@ -41,6 +41,7 @@ on post-fs-data
 
 on fs
     # zram
+    mount_all /fstab.smdk4x12
     swapon_all /fstab.smdk4x12
 
 on boot
